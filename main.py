@@ -2,7 +2,7 @@ import pygame
 import sys
 import math
 import time
-from datetime import datetime
+import random
 
 # Initialize Pygame
 pygame.init()
@@ -33,6 +33,20 @@ font = pygame.font.SysFont(None, 36)
 large_font = pygame.font.SysFont(None, 60)
 button_width, button_height = 200, 60
 button_y_offset = 100
+
+pygame.mixer.init()
+
+# Load background music and cannon sound
+pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback.mp3")  # Replace with your music file
+pygame.mixer.music.set_volume(0.3)  # Adjust volume (0.0 to 1.0)
+pygame.mixer.music.play(-1)  # Loop the music indefinitely
+
+bullet_sounds = [
+    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-David.wav'),
+    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei.wav')
+]  # Replace with your sound file
+for sound in bullet_sounds:
+    sound.set_volume(0.7)
 
 def draw_button(text, x, y):
     rect = pygame.Rect(x, y, button_width, button_height)
@@ -173,8 +187,8 @@ class Canon(pygame.sprite.Sprite):
         else:
             self.rect.center = (x, y)
         self.timer = 0
-        self.speed = 0.2
-        self.fire_rate = 3
+        self.speed = 0.5
+        self.fire_rate = 3.0  # Fire every 1 second
         self.last_fired = time.time()
 
     def update(self, dt):
@@ -186,6 +200,10 @@ class Canon(pygame.sprite.Sprite):
         center = self.rect.center
         current_time = time.time()
         if current_time - self.last_fired >= self.fire_rate:
+            # Play a random bullet sound
+            random.choice(bullet_sounds).play()
+
+            # Fire projectile
             projectiles.add(Projectile(center[0], center[1], target.rect.center))
             self.last_fired = current_time
         if self.align_topright:
