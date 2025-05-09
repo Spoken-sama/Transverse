@@ -37,14 +37,22 @@ button_y_offset = 100
 pygame.mixer.init()
 
 # Load background music and cannon sound
-pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback.mp3")  # Replace with your music file
-pygame.mixer.music.set_volume(0.3)  # Adjust volume (0.0 to 1.0)
-pygame.mixer.music.play(-1)  # Loop the music indefinitely
-
+pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback.mp3")
+#pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback-_1_.mp3")
+pygame.mixer.music.play(-1)
 bullet_sounds = [
     pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-David.wav'),
     pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei.wav')
-]  # Replace with your sound file
+                ]
+running_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-5.wav')
+death_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-7.wav')
+restart_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-12.wav')
+# Set volumes
+death_sound.set_volume(0.7)
+restart_sound.set_volume(0.5)
+running_sound.set_volume(0.2)
+pygame.mixer.music.set_volume(0.3)
+death_sound.set_volume(0.7)
 for sound in bullet_sounds:
     sound.set_volume(0.7)
 
@@ -122,6 +130,7 @@ class Character(pygame.sprite.Sprite):
         self.anim_timer = 0
         self.anim_speed = 0.1
         self.moving = False
+        self.running_sound_playing = False  # Track if running sound is playing
 
     def update(self, dt, keys):
         self.moving = False
@@ -146,9 +155,19 @@ class Character(pygame.sprite.Sprite):
                 self.anim_timer = 0
                 self.index = (self.index + 1) % len(self.animations[self.direction])
                 self.image = self.animations[self.direction][self.index]
+            # Play running sound if not already playing
+            if not self.running_sound_playing:
+                running_sound.play(-1)  # Loop the sound
+                self.running_sound_playing = True
         else:
             self.image = self.animations[self.direction][0]
             self.index = 0
+            # Stop running sound when not moving
+            if self.running_sound_playing:
+                running_sound.stop()
+                self.running_sound_playing = False
+
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, target_pos):
@@ -378,7 +397,7 @@ def update_password_game(events):
 
 # Initial setup
 reset_canon_game() # Call reset_canon_game before the main loop
-
+death_sound_played = False
 # Main game loop
 running = True
 while running:
@@ -395,9 +414,12 @@ while running:
             mx, my = pygame.mouse.get_pos()
             restart_btn_rect = draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
             quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
+
             if restart_btn_rect.collidepoint(mx, my):
+                restart_sound.play()  # Play the restart sound here
                 reset_canon_game()
                 game_over = False
+                death_sound_played = False
                 current_rule_index = 0
                 user_password = ""
                 rule_feedback = {}
@@ -405,6 +427,9 @@ while running:
             elif quit_btn_rect.collidepoint(mx, my):
                 running = False
 
+
+
+    # Update the canon game
     # Update the canon game
     if not game_over and not password_correct:
         target.update(dt, keys)
@@ -414,6 +439,23 @@ while running:
         # Collision detection
         if pygame.sprite.spritecollide(target, projectiles, True):
             game_over = True
+            # Stop running and background music when player dies
+            running_sound.stop()
+            pygame.mixer.music.stop()
+            # Play death sound if not already played
+            if not death_sound_played:
+                death_sound.play()
+                death_sound_played = True
+        # Collision detection
+        if pygame.sprite.spritecollide(target, projectiles, True):
+            game_over = True
+
+
+    # Play death sound when game over
+    if game_over and not death_sound_played:
+        death_sound.play()
+
+        death_sound_played = True
 
     # Handle password input
     if not game_over and not password_correct:
@@ -426,6 +468,9 @@ while running:
     draw_password_input()
     draw_rules()
 
+    if not game_over and not password_correct:
+        if not pygame.mixer.music.get_busy():  # Check if music is not playing
+            pygame.mixer.music.play(-1)  # Restart background music
     # Game over screen
     if game_over:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -443,6 +488,7 @@ while running:
         quit_btn_rect = draw_button("Quit", screen_width // 2 - button_width // 2,
                                     screen_height // 2 + 2 * button_y_offset)
 
+
     # Password correct screen
     if password_correct:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -455,6 +501,9 @@ while running:
         draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
 
     pygame.display.flip()
+
+pygame.quit()
+sys.exit()
 
 pygame.quit()
 sys.exit()
