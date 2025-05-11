@@ -33,7 +33,7 @@ font = pygame.font.SysFont(None, 36)
 large_font = pygame.font.SysFont(None, 60)
 button_width, button_height = 200, 60
 button_y_offset = 100
-ground_image = pygame.image.load("/Users/benjamin/PycharmProjects/Transverse/ground.png").convert_alpha()
+ground_image = pygame.image.load("ground.png").convert_alpha()
 ground_width = ground_image.get_width()
 ground_height = ground_image.get_height()
 num_tiles = (screen_width // ground_width) + 2
@@ -42,16 +42,16 @@ num_tiles = (screen_width // ground_width) + 2
 pygame.mixer.init()
 
 # Load background music and cannon sound
-pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback.mp3")
+pygame.mixer.music.load("videoplayback.mp3")
 #pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback-_1_.mp3")
 pygame.mixer.music.play(-1)
 bullet_sounds = [
-    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-David.wav'),
-    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei.wav')
+    pygame.mixer.Sound('Efrei-David.wav'),
+    pygame.mixer.Sound('Efrei.wav')
                 ]
-running_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-5.wav')
-death_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-7.wav')
-restart_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-12.wav')
+running_sound = pygame.mixer.Sound('Efrei-5.wav')
+death_sound = pygame.mixer.Sound('Efrei-7.wav')
+restart_sound = pygame.mixer.Sound('Efrei-12.wav')
 # Set volumes
 death_sound.set_volume(0.7)
 restart_sound.set_volume(0.5)
@@ -135,7 +135,7 @@ class Character(pygame.sprite.Sprite):
         self.anim_timer = 0
         self.anim_speed = 0.1
         self.moving = False
-        self.running_sound_playing = False  # Track if running sound is playing
+        self.running_sound_playing = False
 
     def update(self, dt, keys):
         self.moving = False
@@ -160,14 +160,12 @@ class Character(pygame.sprite.Sprite):
                 self.anim_timer = 0
                 self.index = (self.index + 1) % len(self.animations[self.direction])
                 self.image = self.animations[self.direction][self.index]
-            # Play running sound if not already playing
             if not self.running_sound_playing:
-                running_sound.play(-1)  # Loop the sound
+                running_sound.play(-1)
                 self.running_sound_playing = True
         else:
             self.image = self.animations[self.direction][0]
             self.index = 0
-            # Stop running sound when not moving
             if self.running_sound_playing:
                 running_sound.stop()
                 self.running_sound_playing = False
@@ -308,24 +306,22 @@ rules = [
     ("La longueur du mot de passe doit être un nombre premier", is_prime_length),
     ("Le mot de passe doit inclure l'heure actuelle (hh:mm)", has_current_time),
 ]
-rule_validation_history = {}  # Tracks which rules have ever been validated
-all_rules_valid = False  # Tracks if all current rules are valid
+rule_validation_history = {}
+all_rules_valid = False
 
 def validate_password(password):
     global current_rule_index, rule_validation_history
 
     results = {}
     for i, (rule_text, rule_func) in enumerate(rules):
-        if i <= current_rule_index:  # Only validate rules up to the current index
+        if i <= current_rule_index:
             try:
                 rule_valid = rule_func(password)
                 results[i] = rule_valid
 
-                # Update validation history
                 if rule_valid:
                     rule_validation_history[i] = True
 
-                # Automatically move to the next rule if the current one is validated
                 if i == current_rule_index and rule_valid:
                     current_rule_index += 1
             except:
@@ -339,12 +335,12 @@ input_rect = pygame.Rect(screen_width // 2 - 200, screen_height // 2 - 50, 400, 
 input_color_active = pygame.Color('lightskyblue3')
 input_color_inactive = pygame.Color('grey')
 input_color = input_color_inactive
-active = True # Input is active by default
+active = True
 feedback_color_correct = (0, 255, 0)
 feedback_color_incorrect = (255, 0, 0)
 
 def draw_password_input():
-    pygame.draw.rect(screen, (50, 50, 50, 200), input_rect) # Semi-transparent background
+    pygame.draw.rect(screen, (50, 50, 50, 200), input_rect)
     text_surface = password_font.render("Mot de passe:", True, (220, 220, 220))
     input_surface = password_font.render(user_password, True, (255, 255, 255))
     screen.blit(text_surface, (input_rect.left + 10, input_rect.top - 40))
@@ -354,20 +350,16 @@ def draw_rules():
     font = pygame.font.SysFont(None, 24)
     y_offset = input_rect.bottom + 30
 
-    # Validate to get current states
-    rule_results = validate_password(user_password)  # Adjusted to handle a single return value
+    rule_results = validate_password(user_password)
 
     for i, (rule_text, _) in enumerate(rules):
-        if i <= current_rule_index:  # Show rules up to the current index
-            # Rule was previously validated but now fails
+        if i <= current_rule_index:
             if rule_validation_history.get(i, False) and not rule_results.get(i, False):
-                color = feedback_color_incorrect  # Red
-            # Rule is currently valid
+                color = feedback_color_incorrect
             elif rule_results.get(i, False):
-                color = feedback_color_correct  # Green
-            # Rule not yet validated
+                color = feedback_color_correct
             else:
-                color = (255, 255, 255)  # White
+                color = (255, 255, 255)
 
             rule_surface = font.render(f"{i + 1}. {rule_text}", True, color)
             screen.blit(rule_surface, (screen_width // 2 - 200, y_offset))
@@ -388,15 +380,13 @@ def update_password_game(events):
             if event.key == pygame.K_BACKSPACE:
                 user_password = user_password[:-1]
             elif event.key == pygame.K_RETURN:
-                # Check if the current rule is valid
                 if all_rules_valid and current_rule_index < len(rules) - 1:
-                    current_rule_index += 1  # Move to the next rule
+                    current_rule_index += 1
                 elif all_rules_valid and current_rule_index == len(rules) - 1:
                     password_correct = True
             else:
                 user_password += event.unicode
 
-    # Continuously validate as the password changes
     if active:
         validate_password(user_password)
 
@@ -421,7 +411,7 @@ while running:
             quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
 
             if restart_btn_rect.collidepoint(mx, my):
-                restart_sound.play()  # Play the restart sound here
+                restart_sound.play()
                 reset_canon_game()
                 game_over = False
                 death_sound_played = False
@@ -435,7 +425,6 @@ while running:
 
 
     # Update the canon game
-    # Update the canon game
     if not game_over and not password_correct:
         target.update(dt, keys)
         canons.update(dt)
@@ -444,10 +433,8 @@ while running:
         # Collision detection
         if pygame.sprite.spritecollide(target, projectiles, True):
             game_over = True
-            # Stop running and background music when player dies
             running_sound.stop()
             pygame.mixer.music.stop()
-            # Play death sound if not already played
             if not death_sound_played:
                 death_sound.play()
                 death_sound_played = True
@@ -479,8 +466,8 @@ while running:
     draw_rules()
 
     if not game_over and not password_correct:
-        if not pygame.mixer.music.get_busy():  # Check if music is not playing
-            pygame.mixer.music.play(-1)  # Restart background music
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play(-1)
     # Game over screen
     if game_over:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
