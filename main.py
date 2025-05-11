@@ -34,20 +34,30 @@ font = pygame.font.SysFont(None, 36)
 large_font = pygame.font.SysFont(None, 60)
 button_width, button_height = 200, 60
 button_y_offset = 100
+ground_image = pygame.image.load("ground.png").convert_alpha()
+ground_width = ground_image.get_width()
+ground_height = ground_image.get_height()
+num_tiles = (screen_width // ground_width) + 2
+
 
 pygame.mixer.init()
 
 # Load background music and cannon sound
-pygame.mixer.music.load("videoplayback.mp3")  # Assuming the file is in the same directory
-pygame.mixer.music.set_volume(0.3)  # Adjust volume (0.0 to 1.0)
-pygame.mixer.music.play(-1)  # Loop the music indefinitely
-
-# Replace music load with Sound load for the bullet sounds
+pygame.mixer.music.load("videoplayback.mp3")
+pygame.mixer.music.play(-1)
 bullet_sounds = [
-    pygame.mixer.Sound("C:/Users/danae/OneDrive/Bureau/Jeu/mt1/Transverse/Efrei-David.wav"),
+    pygame.mixer.Sound('Efrei-David.wav'),
     pygame.mixer.Sound('Efrei.wav')
-]
-
+                ]
+running_sound = pygame.mixer.Sound('Efrei-5.wav')
+death_sound = pygame.mixer.Sound('Efrei-7.wav')
+restart_sound = pygame.mixer.Sound('Efrei-12.wav')
+# Set volumes
+death_sound.set_volume(0.7)
+restart_sound.set_volume(0.5)
+running_sound.set_volume(0.2)
+pygame.mixer.music.set_volume(0.3)
+death_sound.set_volume(0.7)
 for sound in bullet_sounds:
     sound.set_volume(0.7)
 
@@ -127,6 +137,7 @@ class Character(pygame.sprite.Sprite):
         self.anim_timer = 0
         self.anim_speed = 0.1
         self.moving = False
+        self.running_sound_playing = False
 
     def update(self, dt, keys):
         self.moving = False
@@ -151,9 +162,17 @@ class Character(pygame.sprite.Sprite):
                 self.anim_timer = 0
                 self.index = (self.index + 1) % len(self.animations[self.direction])
                 self.image = self.animations[self.direction][self.index]
+            if not self.running_sound_playing:
+                running_sound.play(-1)
+                self.running_sound_playing = True
         else:
             self.image = self.animations[self.direction][0]
             self.index = 0
+            if self.running_sound_playing:
+                running_sound.stop()
+                self.running_sound_playing = False
+
+
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, target_pos):
@@ -278,38 +297,36 @@ def has_current_time(password):
     current_time = datetime.now().strftime("%H:%M")
     return current_time in password
 rules = [
-    ("Il doit y avoir plus de 5 caractères", has_length),
-    ("Il doit y avoir une majuscule", has_upper),
-    ("Il doit y avoir un chiffre", has_digit),
-    ("Il doit y avoir un caractère spécial", has_special),
-    ("Les chiffres doivent s’additionner pour donner 50", digit_sum_50),
-    ("Inclure un chiffre romain", has_roman),
-    ("Inclure un élément chimique à 2 lettres (ex: He, Fe...)", has_element),
-    ("Les éléments chimiques doivent avoir des numéros atomiques qui additionnent à 200", has_grey),
-    ("Inclure un nombre premier à 2 chiffres", has_prime_number),
-    ("Contenir la valeur de pi: 3.14159", has_pi),
-    ("La somme des chiffres romains doit être un multiple de 35", roman_sum_multiple_of_35),
-    ("La longueur du mot de passe doit être un nombre premier", is_prime_length),
-    ("Le mot de passe doit inclure l'heure actuelle (hh:mm)", has_current_time),
+    ("Must include more than 5 characters", has_length),
+    ("Must include an uppercase letter", has_upper),
+    ("Must include a number", has_digit),
+    ("Must include a special character", has_special),
+    ("The summ for all digits must be equal to 50", digit_sum_50),
+    ("Must include a roman numeral", has_roman),
+    ("Must include an element of the periodic table", has_element),
+    ("Must include the major color of the canons", has_grey),
+    ("Must include a two digit prime number", has_prime_number),
+    ("Must contain the value of pi with 6 digits", has_pi),
+    ("the sum of all roman numerals must be a multiple of 35", roman_sum_multiple_of_35),
+    ("The length of the password must be a prime number", is_prime_length),
+    ("Must include the current time(hh:mm)", has_current_time),
 ]
-rule_validation_history = {}  # Tracks which rules have ever been validated
-all_rules_valid = False  # Tracks if all current rules are valid
+rule_validation_history = {}
+all_rules_valid = False
 
 def validate_password(password):
     global current_rule_index, rule_validation_history
 
     results = {}
     for i, (rule_text, rule_func) in enumerate(rules):
-        if i <= current_rule_index:  # Only validate rules up to the current index
+        if i <= current_rule_index:
             try:
                 rule_valid = rule_func(password)
                 results[i] = rule_valid
 
-                # Update validation history
                 if rule_valid:
                     rule_validation_history[i] = True
 
-                # Automatically move to the next rule if the current one is validated
                 if i == current_rule_index and rule_valid:
                     current_rule_index += 1
             except:
@@ -323,24 +340,19 @@ input_rect = pygame.Rect(screen_width // 2 - 200, screen_height // 2 - 50, 400, 
 input_color_active = pygame.Color('lightskyblue3')
 input_color_inactive = pygame.Color('grey')
 input_color = input_color_inactive
-active = True # Input is active by default
+active = True
 feedback_color_correct = (0, 255, 0)
 feedback_color_incorrect = (255, 0, 0)
 
 def draw_password_input():
     pygame.draw.rect(screen, (50, 50, 50, 200), input_rect)
-    text_surface = password_font.render("Mot de passe:", True, (220, 220, 220))
+    text_surface = password_font.render("Password :", True, (220, 220, 220))
     input_surface = password_font.render(user_password, True, (255, 255, 255))
-
     screen.blit(text_surface, (input_rect.left + 10, input_rect.top - 40))
     pygame.draw.rect(screen, input_color, input_rect, 3)
     screen.blit(input_surface, (input_rect.x + 10, input_rect.y + 10))
-
-    # Calculer la position du curseur
     before_cursor_text = password_font.render(user_password[:cursor_pos], True, (255, 255, 255))
     cursor_x = input_rect.x + 10 + before_cursor_text.get_width()
-
-    # Dessiner le curseur
     pygame.draw.line(screen, (255, 255, 255), (cursor_x, input_rect.y + 10),
                      (cursor_x, input_rect.y + 10 + password_font.get_height()), 2)
 
@@ -348,20 +360,16 @@ def draw_rules():
     font = pygame.font.SysFont(None, 24)
     y_offset = input_rect.bottom + 30
 
-    # Validate to get current states
-    rule_results = validate_password(user_password)  # Adjusted to handle a single return value
+    rule_results = validate_password(user_password)
 
     for i, (rule_text, _) in enumerate(rules):
-        if i <= current_rule_index:  # Show rules up to the current index
-            # Rule was previously validated but now fails
+        if i <= current_rule_index:
             if rule_validation_history.get(i, False) and not rule_results.get(i, False):
-                color = feedback_color_incorrect  # Red
-            # Rule is currently valid
+                color = feedback_color_incorrect
             elif rule_results.get(i, False):
-                color = feedback_color_correct  # Green
-            # Rule not yet validated
+                color = feedback_color_correct
             else:
-                color = (255, 255, 255)  # White
+                color = (255, 255, 255)
 
             rule_surface = font.render(f"{i + 1}. {rule_text}", True, color)
             screen.blit(rule_surface, (screen_width // 2 - 200, y_offset))
@@ -404,7 +412,7 @@ def update_password_game(events):
         validate_password(user_password)
 
 # Initial setup
-reset_canon_game() # Call reset_canon_game before the main loop
+reset_canon_game()
 
 # Main game loop
 running = True
@@ -422,9 +430,12 @@ while running:
             mx, my = pygame.mouse.get_pos()
             restart_btn_rect = draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
             quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
+
             if restart_btn_rect.collidepoint(mx, my):
+                restart_sound.play()
                 reset_canon_game()
                 game_over = False
+                death_sound_played = False
                 current_rule_index = 0
                 user_password = ""
                 rule_feedback = {}
@@ -441,7 +452,17 @@ while running:
         # Collision detection
         if pygame.sprite.spritecollide(target, projectiles, True):
             game_over = True
+            running_sound.stop()
+            pygame.mixer.music.stop()
+            if not death_sound_played:
+                death_sound.play()
+                death_sound_played = True
 
+
+    # Play death sound when game over
+    if game_over and not death_sound_played:
+        death_sound.play()
+        death_sound_played = True
 
     # Handle password input
     if not game_over and not password_correct:
@@ -449,11 +470,19 @@ while running:
 
     # Draw everything
     screen.fill((20, 20, 20))
+    for i in range(num_tiles):
+        screen.blit(ground_image, (i * ground_width , screen_height - ground_height - 108))
+
+
+    # Draw the canon game
     all_sprites.draw(screen)
     projectiles.draw(screen)
     draw_password_input()
     draw_rules()
 
+    if not game_over and not password_correct:
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play(-1)
     # Game over screen
     if game_over:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
