@@ -438,9 +438,6 @@ while running:
             if not death_sound_played:
                 death_sound.play()
                 death_sound_played = True
-        # Collision detection
-        if pygame.sprite.spritecollide(target, projectiles, True):
-            game_over = True
 
 
     # Play death sound when game over
@@ -498,9 +495,6 @@ while running:
         draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
 
     pygame.display.flip()
-
-pygame.quit()
-sys.exit()
 
 pygame.quit()
 sys.exit()
