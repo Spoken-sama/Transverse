@@ -33,6 +33,11 @@ font = pygame.font.SysFont(None, 36)
 large_font = pygame.font.SysFont(None, 60)
 button_width, button_height = 200, 60
 button_y_offset = 100
+ground_image = pygame.image.load("/Users/benjamin/PycharmProjects/Transverse/ground.png").convert_alpha()
+ground_width = ground_image.get_width()
+ground_height = ground_image.get_height()
+num_tiles = (screen_width // ground_width) + 2
+
 
 pygame.mixer.init()
 
@@ -463,6 +468,11 @@ while running:
 
     # Draw everything
     screen.fill((20, 20, 20))
+    for i in range(num_tiles):
+        screen.blit(ground_image, (i * ground_width , screen_height - ground_height - 108))
+
+
+    # Draw the canon game
     all_sprites.draw(screen)
     projectiles.draw(screen)
     draw_password_input()
