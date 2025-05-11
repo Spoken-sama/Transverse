@@ -1,0 +1,80 @@
+# 🔐 Password Devil
+
+## 🎯 Subject
+
+**Create a python game using trajectories**
+
+## 👨‍👩‍👧‍👦 Project Members
+
+- **Benjamin Duramé-Gremont**
+- **David Dehondt**
+- **Lola Lievain-Thiébaut**
+- **Mariam Beldi**
+
+## Our game:
+
+The creation of *Password Devil*, heavily inspired by the infamous **password game**, raised multiple challenges:
+
+- The fusion of a more **cerebral gameplay** with an **action-based gameplay** required a lot of adjusting so that the game was not only playable, but also not horrible to play.
+- The animations took a lot of work (thanks to our amazing artist Benjamin) and finding the right timing for all of them was tricky.
+- Choosing the **appropriate music** was a source of conflict, but it was all in good fun, and making the sound effects ourselves was quite enjoyable.
+
+## 🧠 Description
+
+**Password Devil** is a game of reflection and agility, where the player must create a password that meets increasingly twisted **security rules**, while **dodging cannonballs** in real-time.
+
+The game starts with simple constraints (e.g., “minimum 5 characters”, “include a digit”), but as the levels progress, the rules become more numerous, more precise, and sometimes completely crazy.
+
+Meanwhile, the player controls a small character on the screen and must **avoid projectiles** shot by cannons **while typing the password**.
+
+## 🎮 Game Mechanics
+
+- The player controls **both password input** and the **movement of the avatar** on the screen to dodge the shots.
+- **Real-time feedback** indicates which rules are followed or not (white if "to do", red if the rule was followed but is no longer followed, and green if it is followed).
+- A misstep, a poorly dodged cannonball... and it's game over. 
+
+## 🏁 Goal of the game
+
+Reach the **deepest levels** of the password devil's realm, where **reflection**, **speed**, and **composure** are put to the test.
+
+## 👾 Software and Files Used
+
+- [Python 3.x](https://www.python.org/)
+- [Pygame](https://www.pygame.org/) for the game engine
+- Custom sounds (WAV, MP3), animated sprites (PNG)
+
+## 🔧 Prerequisites
+
+- Python 3.7+
+- Install dependencies:
+
+The core of the game is in `main.py`. Here are the main parts of the code:
+
+### **Initialization**
+Loading resources (images, sounds), defining the game window, fonts, etc.
+
+### **Main Loop**
+It handles:
+- Drawing the background and sprites,
+- Detecting collisions between projectiles and the player,
+- Checking password rules in real-time,
+- Increasing difficulty (faster shooting) if the player delays.
+
+### **Player Control**
+- Left/Right arrow keys to move the character.
+- Alphanumeric keyboard to enter the password.
+- Animation changes based on movement.
+
+### **Password Rules**
+At each level, the game checks if the rules are followed. Errors are signaled in real-time via visual feedback. Here are some examples of rules we implemented :
+-  The password must have more than five characters
+-  Must include a roman numeral
+-  The summ of all roman numerals must be a multiple of 35
+-  The password must include the current time
+etc... Pretty tough right ? 
+
+### **Projectile Animations**
+Cannons fire projectiles following a set trajectory. Once hit, the player dies, and the game over screen appears.
+
+### **Transition Screens**
+Introduction screen, game over screen, with interactions to restart or quit.

@@ -227,7 +227,10 @@ class Canon(pygame.sprite.Sprite):
         center = self.rect.center
         current_time = time.time()
         if current_time - self.last_fired >= self.fire_rate:
+            # Play a random bullet sound
             random.choice(bullet_sounds).play()
+
+            # Fire projectile
             projectiles.add(Projectile(center[0], center[1], target.rect.center))
             self.last_fired = current_time
             self.set_random_fire_delay()  # Set next random delay
@@ -413,6 +416,7 @@ def update_password_game(events):
 
 # Initial setup
 reset_canon_game()
+death_sound_played = False
 
 # Main game loop
 running = True
