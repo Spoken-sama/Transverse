@@ -1,85 +1,80 @@
 # 🔐 Password Devil
 
-## 🎯 Sujet
+## 🎯 Subject
 
-**Créer un jeu python incluant des trajéctoires**
+**Create a python game using trajectories**
 
-## Notre jeu
-
-La création de *Password Devil* a soulevé plusieurs défis techniques et conceptuels :
-
-- La **fusion entre le gameplay cérébral ** et le **gameplay d’action en temps réel** a demandé de nombreux ajustements pour que l’un ne gêne pas l’autre.
-- Les **animations** ont été longues à réaliser(merci benjamin) pour donner vie aux éléments visuels tout en respectant le rythme du jeu.
-- Les **choix des musiques adaptées** et la **création des bruitages** à souvent mis en désaccord mais a fini pour le mieux.
-
-## 🧠 Description
-
-**Password Devil** est un jeu de réflexion et d’agilité, où le joueur doit créer un mot de passe répondant à des **règles de sécurité** de plus en plus tordues, tout en **esquivant des boulets de canon** en temps réel.
-
-Le jeu commence avec des contraintes simples (ex : “minimum 5 caractères”, “inclure un chiffre”), mais à chaque niveau, les règles deviennent plus nombreuses, plus précises, et parfois complètement folles.
-
-Pendant ce temps, le joueur contrôle un petit personnage à l’écran et doit **éviter les projectiles** tirés par des canons **tout en tapant le mot de passe**.
-
-Pour acceder à une nouvelle règle, il faut cliquer
-## 🎮 Fonctionnement du jeu
-
-- Le joueur contrôle **à la fois la saisie du mot de passe** et le **déplacement de l’avatar** sur l’écran pour esquiver les tirs.
-- Des **retours en temps réel** indiquent quelles règles sont respectées ou non.
-- Plus le joueur **met de temps** à créer un mot de passe valide, plus les **canons deviennent agressifs**.
-- Un faux pas, une lettre mal placée, ou un boulet mal esquivé… et c’est la fin.
-
-## 🏁 Objectif
-
-Atteindre les **niveaux les plus profonds** du royaume du diable du mot de passe, où **réflexion**, **rapidité** et **sang-froid** sont mis à rude épreuve.
-
-## 👨‍👩‍👧‍👦 Membres du projet
+## 👨‍👩‍👧‍👦 Project Members
 
 - **Benjamin Duramé-Gremont**
 - **David Dehondt**
 - **Lola Lievain-Thiébaut**
 - **Mariam Beldi**
 
-## 👾 Technologies utilisées
+## Our game:
+
+The creation of *Password Devil*, heavily inspired by the infamous **password game**, raised multiple challenges:
+
+- The fusion of a more **cerebral gameplay** with an **action-based gameplay** required a lot of adjusting so that the game was not only playable, but also not horrible to play.
+- The animations took a lot of work (thanks to our amazing artist Benjamin) and finding the right timing for all of them was tricky.
+- Choosing the **appropriate music** was a source of conflict, but it was all in good fun, and making the sound effects ourselves was quite enjoyable.
+
+## 🧠 Description
+
+**Password Devil** is a game of reflection and agility, where the player must create a password that meets increasingly twisted **security rules**, while **dodging cannonballs** in real-time.
+
+The game starts with simple constraints (e.g., “minimum 5 characters”, “include a digit”), but as the levels progress, the rules become more numerous, more precise, and sometimes completely crazy.
+
+Meanwhile, the player controls a small character on the screen and must **avoid projectiles** shot by cannons **while typing the password**.
+
+## 🎮 Game Mechanics
+
+- The player controls **both password input** and the **movement of the avatar** on the screen to dodge the shots.
+- **Real-time feedback** indicates which rules are followed or not (white if "to do", red if the rule was followed but is no longer followed, and green if it is followed).
+- A misstep, a poorly dodged cannonball... and it's game over. 
+
+## 🏁 Goal of the game
+
+Reach the **deepest levels** of the password devil's realm, where **reflection**, **speed**, and **composure** are put to the test.
+
+## 👾 Software and Files Used
 
 - [Python 3.x](https://www.python.org/)
-- [Pygame](https://www.pygame.org/) pour le moteur de jeu
-- Sons personnalisés (WAV, MP3), sprites animés (PNG)
+- [Pygame](https://www.pygame.org/) for the game engine
+- Custom sounds (WAV, MP3), animated sprites (PNG)
 
-## 🔧 Prérequis
+## 🔧 Prerequisites
 
 - Python 3.7+
-- Installer les dépendances :
+- Install dependencies:
 
-Le cœur du jeu se trouve dans main.py. Voici les principales parties du code :
+The core of the game is in `main.py`. Here are the main parts of the code:
 
-Initialisation
-Chargement des ressources (images, sons), définition de la fenêtre de jeu, polices, etc.
+### **Initialization**
+Loading resources (images, sounds), defining the game window, fonts, etc.
 
-Boucle principale
-Elle gère :
+### **Main Loop**
+It handles:
+- Drawing the background and sprites,
+- Detecting collisions between projectiles and the player,
+- Checking password rules in real-time,
+- Increasing difficulty (faster shooting) if the player delays.
 
-le dessin de l’arrière-plan et des sprites,
+### **Player Control**
+- Left/Right arrow keys to move the character.
+- Alphanumeric keyboard to enter the password.
+- Animation changes based on movement.
 
-la détection de collision entre projectiles et joueur,
+### **Password Rules**
+At each level, the game checks if the rules are followed. Errors are signaled in real-time via visual feedback. Here are some examples of rules we implemented :
+-  The password must have more than five characters
+-  Must include a roman numeral
+-  The summ of all roman numerals must be a multiple of 35
+-  The password must include the current time
+etc... Pretty tough right ? 
 
-la vérification en temps réel des règles du mot de passe,
+### **Projectile Animations**
+Cannons fire projectiles following a set trajectory. Once hit, the player dies, and the game over screen appears.
 
-l’augmentation de la difficulté (tir plus rapide) si le joueur tarde.
-
-Contrôle du joueur
-
-Flèches gauche/droite pour déplacer le personnage.
-
-Clavier alphanumérique pour entrer le mot de passe.
-
-Changement d’animation en fonction du mouvement.
-
-Règles du mot de passe
-À chaque niveau, le jeu vérifie que les règles sont respectées. Les erreurs sont signalées en temps réel via un retour visuel et sonore.
-
-Animation des projectiles
-Les canons tirent des boulets en suivant une trajectoire définie. Une fois touché, le joueur meurt et l'écran de game over apparaît.
-
-Écrans de transition
-Écran d'introduction, de victoire, de game over, avec des interactions pour recommencer ou quitter.
-
+### **Transition Screens**
+Introduction screen, game over screen, with interactions to restart or quit.
