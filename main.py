@@ -18,6 +18,7 @@ SCALE = 1 / 3
 SCALECHAR = 1 / 2
 
 # Game state (only for game over of canon part)
+game_won = False
 canons_enabled = True
 game_over = False
 password_correct = False
@@ -319,7 +320,7 @@ rule_validation_history = {}
 all_rules_valid = False
 
 def validate_password(password):
-    global current_rule_index, rule_validation_history
+    global current_rule_index, rule_validation_history, all_rules_valid
 
     results = {}
     for i, (rule_text, rule_func) in enumerate(rules):
@@ -335,8 +336,13 @@ def validate_password(password):
                     current_rule_index += 1
             except:
                 results[i] = False
+    if current_rule_index >= len(rules):
+        all_rules_valid = True
+    else:
+        all_rules_valid = False
 
     return results
+
 
 # --- Integrated Password Game Variables ---
 password_font = pygame.font.SysFont(None, 48)
@@ -347,6 +353,10 @@ input_color = input_color_inactive
 active = True
 feedback_color_correct = (0, 255, 0)
 feedback_color_incorrect = (255, 0, 0)
+
+def check_all_rules_passed():
+    return all(rule_validation_history.get(i, False) for i in range(len(rules)))
+
 
 def draw_password_input():
     pygame.draw.rect(screen, (50, 50, 50, 200), input_rect)
@@ -416,9 +426,13 @@ def update_password_game(events):
             canons_enabled = False
         else:
             canons_enabled = True
+    if all_rules_valid:
+        global game_won
+        game_won = True
 
     if active:
         validate_password(user_password)
+
 
 # Initial setup
 reset_canon_game()
@@ -436,81 +450,60 @@ while running:
             event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE
         ):
             running = False
-        if game_over and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            mx, my = pygame.mouse.get_pos()
-            restart_btn_rect = draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
-            quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
 
-            if restart_btn_rect.collidepoint(mx, my):
-                restart_sound.play()
-                reset_canon_game()
-                game_over = False
-                death_sound_played = False
-                current_rule_index = 0
-                user_password = ""
-                rule_feedback = {}
-                password_correct = False
-            elif quit_btn_rect.collidepoint(mx, my):
-                running = False
+    # --- Game Won ---
+    if game_won:
+        screen.fill((0, 0, 0))
+        text = large_font.render("YOU WON!", True, (0, 255, 0))
+        screen.blit(text, (screen_width // 2 - text.get_width() // 2, screen_height // 2 - text.get_height() // 2))
 
-    # Update the canon game
-    if not game_over and not password_correct:
-        target.update(dt, keys)
-        canons.update(dt)
-        projectiles.update(dt)
+        quit_btn_rect = draw_button("Quit", screen_width // 2 - 100, screen_height // 2 + 100)
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+                if quit_btn_rect.collidepoint(mx, my):
+                    running = False
 
-        # Collision detection
-        if pygame.sprite.spritecollide(target, projectiles, True):
-            game_over = True
-            running_sound.stop()
-            pygame.mixer.music.stop()
-            if not death_sound_played:
-                death_sound.play()
-                death_sound_played = True
+        pygame.display.flip()
+        continue  # skip rest of the loop
 
-
-    # Play death sound when game over
-    if game_over and not death_sound_played:
-        death_sound.play()
-        death_sound_played = True
-
-    # Handle password input
-    if not game_over and not password_correct:
-        update_password_game(events)
-
-    # Draw everything
-    screen.fill((20, 20, 20))
-    for i in range(num_tiles):
-        screen.blit(ground_image, (i * ground_width , screen_height - ground_height - 108))
-
-
-    # Draw the canon game
-    all_sprites.draw(screen)
-    projectiles.draw(screen)
-    draw_password_input()
-    draw_rules()
-
-    if not game_over and not password_correct:
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play(-1)
-    # Game over screen
+    # --- Game Over ---
     if game_over:
+        # Play death sound once
+        if not death_sound_played:
+            death_sound.play()
+            death_sound_played = True
+
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
         screen.blit(overlay, (0, 0))
 
-        # Center the "Game Over" text
         game_over_text = large_font.render("Game Over", True, (255, 0, 0))
         text_rect = game_over_text.get_rect(center=(screen_width // 2, screen_height // 2 - 100))
         screen.blit(game_over_text, text_rect)
 
-        # Draw the buttons using pre-defined rectangles
-        restart_btn_rect = draw_button("Restart", screen_width // 2 - button_width // 2,
-                                       screen_height // 2 + button_y_offset);
-        quit_btn_rect = draw_button("Quit", screen_width // 2 - button_width // 2,
-                                    screen_height // 2 + 2 * button_y_offset)
+        restart_btn_rect = draw_button("Restart", screen_width // 2 - button_width // 2, screen_height // 2 + button_y_offset)
+        quit_btn_rect = draw_button("Quit", screen_width // 2 - button_width // 2, screen_height // 2 + 2 * button_y_offset)
 
-    # Password correct screen
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+                if restart_btn_rect.collidepoint(mx, my):
+                    restart_sound.play()
+                    reset_canon_game()
+                    game_over = False
+                    death_sound_played = False
+                    current_rule_index = 0
+                    user_password = ""
+                    rule_feedback = {}
+                    password_correct = False
+                elif quit_btn_rect.collidepoint(mx, my):
+                    running = False
+
+        pygame.display.flip()
+        continue  # skip rest of the loop
+
+    # --- Password Correct ---
     if password_correct:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
@@ -518,10 +511,57 @@ while running:
         correct_text = large_font.render("Password Correct!", True, (0, 255, 0))
         text_rect = correct_text.get_rect(center=(screen_width // 2, screen_height // 2 - 50))
         screen.blit(correct_text, text_rect)
-        draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
-        draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
+
+        restart_btn_rect = draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
+        quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
+
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                mx, my = event.pos
+                if restart_btn_rect.collidepoint(mx, my):
+                    restart_sound.play()
+                    reset_canon_game()
+                    game_over = False
+                    death_sound_played = False
+                    password_correct = False
+                    current_rule_index = 0
+                    user_password = ""
+                    rule_feedback = {}
+                elif quit_btn_rect.collidepoint(mx, my):
+                    running = False
+
+        pygame.display.flip()
+        continue  # skip rest of the loop
+
+    # --- Active Game ---
+    if not pygame.mixer.music.get_busy():
+        pygame.mixer.music.play(-1)
+
+    target.update(dt, keys)
+    canons.update(dt)
+    projectiles.update(dt)
+
+    # Collision detection
+    if pygame.sprite.spritecollide(target, projectiles, True):
+        game_over = True
+        running_sound.stop()
+        pygame.mixer.music.stop()
+
+    # Handle password input
+    update_password_game(events)
+
+    # Draw everything
+    screen.fill((20, 20, 20))
+    for i in range(num_tiles):
+        screen.blit(ground_image, (i * ground_width , screen_height - ground_height - 108))
+
+    all_sprites.draw(screen)
+    projectiles.draw(screen)
+    draw_password_input()
+    draw_rules()
 
     pygame.display.flip()
+
 
 pygame.quit()
 sys.exit()
