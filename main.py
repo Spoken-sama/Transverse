@@ -292,19 +292,19 @@ def has_current_time(password):
     current_time = datetime.now().strftime("%H:%M")
     return current_time in password
 rules = [
-    ("Il doit y avoir plus de 5 caractères", has_length),
-    ("Il doit y avoir une majuscule", has_upper),
-    ("Il doit y avoir un chiffre", has_digit),
-    ("Il doit y avoir un caractère spécial", has_special),
-    ("Les chiffres doivent s’additionner pour donner 50", digit_sum_50),
-    ("Inclure un chiffre romain", has_roman),
-    ("Inclure un élément chimique à 2 lettres (ex: He, Fe...)", has_element),
-    ("Les éléments chimiques doivent avoir des numéros atomiques qui additionnent à 200", has_grey),
-    ("Inclure un nombre premier à 2 chiffres", has_prime_number),
-    ("Contenir la valeur de pi: 3.14159", has_pi),
-    ("La somme des chiffres romains doit être un multiple de 35", roman_sum_multiple_of_35),
-    ("La longueur du mot de passe doit être un nombre premier", is_prime_length),
-    ("Le mot de passe doit inclure l'heure actuelle (hh:mm)", has_current_time),
+    ("Must include more than 5 characters", has_length),
+    ("Must include an uppercase letter", has_upper),
+    ("Must include a number", has_digit),
+    ("Must include a special character", has_special),
+    ("The summ for all digits must be equal to 50", digit_sum_50),
+    ("Must include a roman numeral", has_roman),
+    ("Must include an element of the periodic table(ex: He, Fe...)", has_element),
+    ("The sum of all the atomic numbers of the included elements must add up to 200", has_grey),
+    ("Must include a two digit prime number", has_prime_number),
+    ("Must contain the value of pi: 3.14159", has_pi),
+    ("the sum of all roman numerals must be a multiple of 35", roman_sum_multiple_of_35),
+    ("The length of the password must be a prime number", is_prime_length),
+    ("Must include the current time(hh:mm)", has_current_time),
 ]
 rule_validation_history = {}
 all_rules_valid = False
@@ -341,7 +341,7 @@ feedback_color_incorrect = (255, 0, 0)
 
 def draw_password_input():
     pygame.draw.rect(screen, (50, 50, 50, 200), input_rect)
-    text_surface = password_font.render("Mot de passe:", True, (220, 220, 220))
+    text_surface = password_font.render("Password :", True, (220, 220, 220))
     input_surface = password_font.render(user_password, True, (255, 255, 255))
     screen.blit(text_surface, (input_rect.left + 10, input_rect.top - 40))
     pygame.draw.rect(screen, input_color, input_rect, 3)
