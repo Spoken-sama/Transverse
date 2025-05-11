@@ -8,7 +8,7 @@ import random
 pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
-pygame.display.set_caption("Simultaneous Canon Animation and Password Game")
+pygame.display.set_caption("Devil password")
 clock = pygame.time.Clock()
 cursor_pos = 0
 
@@ -18,6 +18,7 @@ SCALE = 1 / 3
 SCALECHAR = 1 / 2
 
 # Game state (only for game over of canon part)
+canons_enabled = True
 game_over = False
 password_correct = False
 current_rule_index = 0
@@ -216,7 +217,7 @@ class Canon(pygame.sprite.Sprite):
         self.last_fired = time.time()
 
     def set_random_fire_delay(self):
-        self.fire_rate = random.uniform(2.5, 6.0)  # Random delay between 1.5 and 4 seconds
+        self.fire_rate = random.uniform(3.5, 7.0)  # Random delay between 1.5 and 4 seconds
 
     def update(self, dt):
         self.timer += dt
@@ -226,7 +227,7 @@ class Canon(pygame.sprite.Sprite):
             self.image = self.frames[self.index]
         center = self.rect.center
         current_time = time.time()
-        if current_time - self.last_fired >= self.fire_rate:
+        if canons_enabled and current_time - self.last_fired >= self.fire_rate:
             # Play a random bullet sound
             random.choice(bullet_sounds).play()
 
@@ -339,7 +340,7 @@ def validate_password(password):
 
 # --- Integrated Password Game Variables ---
 password_font = pygame.font.SysFont(None, 48)
-input_rect = pygame.Rect(screen_width // 2 - 200, screen_height // 2 - 50, 400, 80)
+input_rect = pygame.Rect(5*screen_width // 8 - 650, screen_height // 2 - 50, 800, 80)
 input_color_active = pygame.Color('lightskyblue3')
 input_color_inactive = pygame.Color('grey')
 input_color = input_color_inactive
@@ -379,6 +380,7 @@ def draw_rules():
             y_offset += 20
 def update_password_game(events):
     global user_password, active, input_color, current_rule_index, password_correct, cursor_pos
+    global canons_enabled
 
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -410,6 +412,10 @@ def update_password_game(events):
                 if event.unicode.isprintable():
                     user_password = user_password[:cursor_pos] + event.unicode + user_password[cursor_pos:]
                     cursor_pos += 1
+        if "stop" in user_password.lower():
+            canons_enabled = False
+        else:
+            canons_enabled = True
 
     if active:
         validate_password(user_password)
