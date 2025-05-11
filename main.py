@@ -10,6 +10,7 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 screen_width, screen_height = screen.get_size()
 pygame.display.set_caption("Simultaneous Canon Animation and Password Game")
 clock = pygame.time.Clock()
+cursor_pos = 0
 
 
 # Scale factors
@@ -37,22 +38,16 @@ button_y_offset = 100
 pygame.mixer.init()
 
 # Load background music and cannon sound
-pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback.mp3")
-#pygame.mixer.music.load("/Users/benjamin/PycharmProjects/Transverse/videoplayback-_1_.mp3")
-pygame.mixer.music.play(-1)
+pygame.mixer.music.load("videoplayback.mp3")  # Assuming the file is in the same directory
+pygame.mixer.music.set_volume(0.3)  # Adjust volume (0.0 to 1.0)
+pygame.mixer.music.play(-1)  # Loop the music indefinitely
+
+# Replace music load with Sound load for the bullet sounds
 bullet_sounds = [
-    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-David.wav'),
-    pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei.wav')
-                ]
-running_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-5.wav')
-death_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-7.wav')
-restart_sound = pygame.mixer.Sound('/Users/benjamin/PycharmProjects/Transverse/Efrei-12.wav')
-# Set volumes
-death_sound.set_volume(0.7)
-restart_sound.set_volume(0.5)
-running_sound.set_volume(0.2)
-pygame.mixer.music.set_volume(0.3)
-death_sound.set_volume(0.7)
+    pygame.mixer.Sound("C:/Users/danae/OneDrive/Bureau/Jeu/mt1/Transverse/Efrei-David.wav"),
+    pygame.mixer.Sound('Efrei.wav')
+]
+
 for sound in bullet_sounds:
     sound.set_volume(0.7)
 
@@ -76,8 +71,10 @@ def reset_canon_game():
     all_sprites.add(target)
     new_canons = pygame.sprite.Group(
         Canon(80, screen_height // 2, 'down', canon_sprites),
-        Canon(800, 100, 'right', canon_sprites),
-        Canon(1700, screen_height // 2, 'left', canon_sprites, align_topright=True)
+        Canon(screen_width / 2, 100, 'right', canon_sprites),
+        Canon(screen_width - 80, screen_height // 2, 'left', canon_sprites, align_topright=True),
+        Canon(screen_width / 4, 100, 'right', canon_sprites),
+        Canon(3 * screen_width /4, 100, 'right', canon_sprites),
     )
     for canon in new_canons:
         canons.add(canon)
@@ -130,7 +127,6 @@ class Character(pygame.sprite.Sprite):
         self.anim_timer = 0
         self.anim_speed = 0.1
         self.moving = False
-        self.running_sound_playing = False  # Track if running sound is playing
 
     def update(self, dt, keys):
         self.moving = False
@@ -155,19 +151,9 @@ class Character(pygame.sprite.Sprite):
                 self.anim_timer = 0
                 self.index = (self.index + 1) % len(self.animations[self.direction])
                 self.image = self.animations[self.direction][self.index]
-            # Play running sound if not already playing
-            if not self.running_sound_playing:
-                running_sound.play(-1)  # Loop the sound
-                self.running_sound_playing = True
         else:
             self.image = self.animations[self.direction][0]
             self.index = 0
-            # Stop running sound when not moving
-            if self.running_sound_playing:
-                running_sound.stop()
-                self.running_sound_playing = False
-
-
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, target_pos):
@@ -207,8 +193,11 @@ class Canon(pygame.sprite.Sprite):
             self.rect.center = (x, y)
         self.timer = 0
         self.speed = 0.5
-        self.fire_rate = 3.0  # Fire every 1 second
+        self.set_random_fire_delay()
         self.last_fired = time.time()
+
+    def set_random_fire_delay(self):
+        self.fire_rate = random.uniform(2.5, 6.0)  # Random delay between 1.5 and 4 seconds
 
     def update(self, dt):
         self.timer += dt
@@ -219,16 +208,16 @@ class Canon(pygame.sprite.Sprite):
         center = self.rect.center
         current_time = time.time()
         if current_time - self.last_fired >= self.fire_rate:
-            # Play a random bullet sound
             random.choice(bullet_sounds).play()
-
-            # Fire projectile
             projectiles.add(Projectile(center[0], center[1], target.rect.center))
             self.last_fired = current_time
+            self.set_random_fire_delay()  # Set next random delay
+
         if self.align_topright:
             self.rect = self.image.get_rect(topright=self.rect.topright)
         else:
             self.rect = self.image.get_rect(center=self.rect.center)
+
 
 # --- Password Rules ---
 def has_length(password):
@@ -339,12 +328,22 @@ feedback_color_correct = (0, 255, 0)
 feedback_color_incorrect = (255, 0, 0)
 
 def draw_password_input():
-    pygame.draw.rect(screen, (50, 50, 50, 200), input_rect) # Semi-transparent background
+    pygame.draw.rect(screen, (50, 50, 50, 200), input_rect)
     text_surface = password_font.render("Mot de passe:", True, (220, 220, 220))
     input_surface = password_font.render(user_password, True, (255, 255, 255))
+
     screen.blit(text_surface, (input_rect.left + 10, input_rect.top - 40))
     pygame.draw.rect(screen, input_color, input_rect, 3)
     screen.blit(input_surface, (input_rect.x + 10, input_rect.y + 10))
+
+    # Calculer la position du curseur
+    before_cursor_text = password_font.render(user_password[:cursor_pos], True, (255, 255, 255))
+    cursor_x = input_rect.x + 10 + before_cursor_text.get_width()
+
+    # Dessiner le curseur
+    pygame.draw.line(screen, (255, 255, 255), (cursor_x, input_rect.y + 10),
+                     (cursor_x, input_rect.y + 10 + password_font.get_height()), 2)
+
 def draw_rules():
     font = pygame.font.SysFont(None, 24)
     y_offset = input_rect.bottom + 30
@@ -368,7 +367,7 @@ def draw_rules():
             screen.blit(rule_surface, (screen_width // 2 - 200, y_offset))
             y_offset += 20
 def update_password_game(events):
-    global user_password, active, input_color, current_rule_index, password_correct
+    global user_password, active, input_color, current_rule_index, password_correct, cursor_pos
 
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -381,23 +380,32 @@ def update_password_game(events):
 
         if event.type == pygame.KEYDOWN and active:
             if event.key == pygame.K_BACKSPACE:
-                user_password = user_password[:-1]
+                if cursor_pos > 0:
+                    user_password = user_password[:cursor_pos - 1] + user_password[cursor_pos:]
+                    cursor_pos -= 1
+            elif event.key == pygame.K_DELETE:
+                if cursor_pos < len(user_password):
+                    user_password = user_password[:cursor_pos] + user_password[cursor_pos + 1:]
+            elif event.key == pygame.K_LEFT:
+                cursor_pos = max(0, cursor_pos - 1)
+            elif event.key == pygame.K_RIGHT:
+                cursor_pos = min(len(user_password), cursor_pos + 1)
             elif event.key == pygame.K_RETURN:
-                # Check if the current rule is valid
                 if all_rules_valid and current_rule_index < len(rules) - 1:
-                    current_rule_index += 1  # Move to the next rule
+                    current_rule_index += 1
                 elif all_rules_valid and current_rule_index == len(rules) - 1:
                     password_correct = True
             else:
-                user_password += event.unicode
+                if event.unicode.isprintable():
+                    user_password = user_password[:cursor_pos] + event.unicode + user_password[cursor_pos:]
+                    cursor_pos += 1
 
-    # Continuously validate as the password changes
     if active:
         validate_password(user_password)
 
 # Initial setup
 reset_canon_game() # Call reset_canon_game before the main loop
-death_sound_played = False
+
 # Main game loop
 running = True
 while running:
@@ -414,12 +422,9 @@ while running:
             mx, my = pygame.mouse.get_pos()
             restart_btn_rect = draw_button("Restart", screen_width // 2 - 100, screen_height // 2 + button_y_offset)
             quit_btn_rect = draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
-
             if restart_btn_rect.collidepoint(mx, my):
-                restart_sound.play()  # Play the restart sound here
                 reset_canon_game()
                 game_over = False
-                death_sound_played = False
                 current_rule_index = 0
                 user_password = ""
                 rule_feedback = {}
@@ -427,9 +432,6 @@ while running:
             elif quit_btn_rect.collidepoint(mx, my):
                 running = False
 
-
-
-    # Update the canon game
     # Update the canon game
     if not game_over and not password_correct:
         target.update(dt, keys)
@@ -439,23 +441,7 @@ while running:
         # Collision detection
         if pygame.sprite.spritecollide(target, projectiles, True):
             game_over = True
-            # Stop running and background music when player dies
-            running_sound.stop()
-            pygame.mixer.music.stop()
-            # Play death sound if not already played
-            if not death_sound_played:
-                death_sound.play()
-                death_sound_played = True
-        # Collision detection
-        if pygame.sprite.spritecollide(target, projectiles, True):
-            game_over = True
 
-
-    # Play death sound when game over
-    if game_over and not death_sound_played:
-        death_sound.play()
-
-        death_sound_played = True
 
     # Handle password input
     if not game_over and not password_correct:
@@ -468,9 +454,6 @@ while running:
     draw_password_input()
     draw_rules()
 
-    if not game_over and not password_correct:
-        if not pygame.mixer.music.get_busy():  # Check if music is not playing
-            pygame.mixer.music.play(-1)  # Restart background music
     # Game over screen
     if game_over:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -488,7 +471,6 @@ while running:
         quit_btn_rect = draw_button("Quit", screen_width // 2 - button_width // 2,
                                     screen_height // 2 + 2 * button_y_offset)
 
-
     # Password correct screen
     if password_correct:
         overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -501,9 +483,6 @@ while running:
         draw_button("Quit", screen_width // 2 + 100, screen_height // 2 + button_y_offset)
 
     pygame.display.flip()
-
-pygame.quit()
-sys.exit()
 
 pygame.quit()
 sys.exit()
